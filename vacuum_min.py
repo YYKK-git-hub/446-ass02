@@ -156,9 +156,15 @@ class SearchNode:
 
     def get_path(self) -> List[str]:
         """Reconstructs the action path from the root to this node."""
-        # TODO: Implement path reconstruction logic
-        raise NotImplementedError("Implement SearchNode.get_path()")
+        actions = []  # create a list for the actions
+        node = self # create a node to trace back where it was at
 
+        while node.parent is not None:  # just in case that the node is the starting point
+            actions.append(node.action) # save the action
+            node = node.parent  # reverse back to the parent node
+
+        actions.reverse()   # reverse it to get the correct sequence
+        return actions  # return what we've done
 
 class VacuumSearchProblem:
     """Defines the state space and rules for the Vacuum Cleaner environment."""
@@ -168,18 +174,49 @@ class VacuumSearchProblem:
 
     def is_goal(self, state: SearchState) -> bool:
         """Returns True if the given state satisfies the goal condition."""
-        # TODO: Check if all cells are clean
-        raise NotImplementedError("Implement VacuumSearchProblem.is_goal()")
+        position, dirty_cells = state
+        return len(dirty_cells) == 0    # To check if all the dirty cells have been cleaned up
 
     def get_actions(self, state: SearchState) -> List[str]:
         """Returns valid actions from the given state without stepping out of grid bounds."""
-        # TODO: Calculate valid moves ("Up", "Down", "Left", "Right") and "Suck" if current cell is dirty
-        raise NotImplementedError("Implement VacuumSearchProblem.get_actions()")
+
+        (x, y), dirty_cells = state         # deliver current state
+        actions = []                        # a list to store the actions
+
+        if y > 0:                            # not at the top, allow the vacuum to move up
+            actions.append("Up")
+
+        if y < self.grid_size - 1:           # not at the bottom, allow the vacuum to move down
+            actions.append("Down")
+
+        if x > 0:                            # not at the leftest, allow the vacuum to move right
+            actions.append("Left")
+
+        if x < self.grid_size - 1:           # not at the rightest, allow the vacuum to move left
+            actions.append("Right")
+
+        if (x, y) in dirty_cells:            # return "suck" as the vacuum will clean the dirty cell
+            actions.append("Suck")
+
+        return actions
 
     def transition_model(self, state: SearchState, action: str) -> SearchState:
         """Applies an action to a state and returns the resulting next state."""
-        # TODO: Return new SearchState tuple after applying movement or cleaning
-        raise NotImplementedError("Implement VacuumSearchProblem.transition_model()")
+
+        (x, y), dirty_cells = state          # deliver current state
+
+        if action == "Up":                   # Execute the corresponding action
+            y = y - 1
+        elif action == "Down":
+            y = y + 1
+        elif action == "Left":
+            x = x - 1
+        elif action == "Right":
+            x = x + 1
+        elif action == "Suck":
+            dirty_cells = dirty_cells - frozenset({(x, y)})     # delete current position after cleaning
+
+        return ((x, y), dirty_cells)        # return a new state
 
 
 class BFSAgent(Agent):
@@ -190,12 +227,70 @@ class BFSAgent(Agent):
     def _compute_plan(self, problem: VacuumSearchProblem) -> List[str]:
         """Performs Breadth-First Search on the problem and returns a list of action strings."""
         # TODO: Implement BFS algorithm using deque for frontier and a set for reached states
-        # some code
+        # # some code
+        # ###*********************************************************
+        # I actually don't know how to do this part, I don't know what this algorithm is.
+        # After asking AI, AI helped me on this, and this is what it should be:
+        # ###********************************************************
+
+        # root = SearchNode(problem.initial)
+        # frontier = deque([root])
+        # reached = {root.state}
+        #
+        # while frontier:
+        #     node = frontier.popleft()
+        #
+        #     if problem.is_goal(node.state):
+        #         return node.get_path()
+        #
+        #     for action in problem.get_actions(node.state):
+        #         next_state = problem.transition_model(node.state, action)
+        #
+        #         if next_state not in reached:
+        #             reached.add(next_state)
+        #
+        #             child = SearchNode(
+        #                 state=next_state,
+        #                 parent=node,
+        #                 action=action,
+        #                 path_cost=node.path_cost + 1
+        #             )
+        #
+        #             frontier.append(child)
+        #
+        # return []
+
+        # ###***************************************************
         raise NotImplementedError("Implement BFSAgent._compute_plan()")
 
     def decide(self, percept: Percept) -> Action:
         """Parses the percept, computes a search plan, and returns the next immediate Action."""
         # TODO: Instantiate VacuumSearchProblem from percept, obtain plan, and pop first action
+        # # some code
+        # ###*********************************************************
+        # So does this part
+        # ###********************************************************
+
+        # dirty_cells = set()
+        #
+        # for position, status in percept.visible_cells.items():
+        #     if status == "Dirty":
+        #         dirty_cells.add(position)
+        #
+        # problem = VacuumSearchProblem(percept.position, dirty_cells)
+        # plan = self._compute_plan(problem)
+        #
+        # if not plan:
+        #     return Action(clean=False, move="NoOp")
+        #
+        # next_action = plan.pop(0)
+        #
+        # if next_action == "Suck":
+        #     return Action(clean=True, move="Suck")
+        # else:
+        #     return Action(clean=False, move=next_action)
+        #
+        # # ###***************************************************
         raise NotImplementedError("Implement BFSAgent.decide()")
 
 
